@@ -281,8 +281,7 @@ calling client, or the Agentic Reflection process may be called again.
 
 Here we follow an illustrative implementation of the approach presented
 in this article, and walk through it using a sample user query. This
-implementation is available on GitHub \[the link to the repo goes
-here\], and readers are encouraged to download it and run through the
+implementation is available on GitHub [link](https://github.com/genai-articles/nl2sql_with_agentic_reflection), and readers are encouraged to download it and run through the
 steps with the explanation below.
 
 ### Problem Setup
@@ -321,34 +320,29 @@ as required in your solution. It also holds some flow tracking fields
 namely, iteration to track the iteration number, and source to track the
 source of last SQL generation, ‘First-Pass’ or ‘Reflection-Pass’.
 
-iteration = 0  
-while True:  
-    # get validation result and analysis  
-    validation_result = reflection_tasks.validation(reflection_state)  
-  
-    # any more iterations to do?  
-    if validation_result\['validation'\] is True or \\  
-            iteration \>= app_constants.MAX_REFLECTION_ITERATIONS:  
-        break  # break out of the iteration loop  
-  
-    # prepare a prompt for reflection -  
-    # using system prompt, user query, tables schema,  
-    # tables rules, previously generated output  
-    reflection_prompt =
-reflection_tasks.generate_reflection_prompt(reflection_state)  
-  
-    # LLM's response to the prompt  
-    llm_response = reflection_tasks.llm_inference(reflection_prompt)  
-    output_sql =
-reflection_tasks.get_sql_from_completion(llm_response)  
-    reflection_tasks.set_sql_in_genoutput(reflection_state,
-output_sql)  
-  
-    iteration = iteration + 1  
-    reflection_tasks.set_iteration_in_genoutput(reflection_state,
-iteration)  
-    reflection_tasks.set_source_in_genoutput(reflection_state,
-'Reflection-Pass')
+	iteration = 0  
+	while True:  
+	    # get validation result and analysis  
+	    validation_result = reflection_tasks.validation(reflection_state)  
+	  
+	    # any more iterations to do?  
+	    if validation_result['validation'] is True or \
+	            iteration >= app_constants.MAX_REFLECTION_ITERATIONS:  
+	        break  # break out of the iteration loop  
+	  
+	    # prepare a prompt for reflection -  
+	    # using system prompt, user query, tables schema,  
+	    # tables rules, previously generated output  
+	    reflection_prompt = reflection_tasks.generate_reflection_prompt(reflection_state)  
+	  
+	    # LLM's response to the prompt  
+	    llm_response = reflection_tasks.llm_inference(reflection_prompt)  
+	    output_sql = reflection_tasks.get_sql_from_completion(llm_response)  
+	    reflection_tasks.set_sql_in_genoutput(reflection_state, output_sql)  
+	  
+	    iteration = iteration + 1  
+	    reflection_tasks.set_iteration_in_genoutput(reflection_state, iteration)  
+	    reflection_tasks.set_source_in_genoutput(reflection_state, 'Reflection-Pass')
 
 **Step 1 - First Pass**
 
@@ -356,15 +350,14 @@ As mentioned, we start from the point were the first pass execution has
 been completed. The state object stores the user query and the generated
 SQL after that pass, as given below.
 
-\# First-pass generated output:  
-\# {  
-\# "user_query": "List my VPN Policies",  
-\# "sql": "SELECT DISTINCT vpn_policy_union.name,
-vpn_policy_union.policy_type \\  
-\#      FROM vpn_policy_union",  
-\# "iteration": 0,  
-\# "source": "First-Pass"  
-\# }
+	# First-pass generated output:  
+	# {  
+	# "user_query": "List my VPN Policies",  
+	# "sql": "SELECT DISTINCT vpn_policy_union.name, vpn_policy_union.policy_type \
+	#      FROM vpn_policy_union",  
+	# "iteration": 0,  
+	# "source": "First-Pass"  
+	# }
 
 **Step 2 - Validation of the output from first pass**
 
@@ -377,20 +370,19 @@ which makes the control move forward in the iteration loop for
 performing review and remedy (aka reflection) of the previously
 generated SQL.
 
-\# get validation result and analysis  
-validation_result = reflection_tasks.validation(reflection_state)  
-  
-\# Validation result:  
-\# {  
-\#     "validation": false,  
-\#     "validation_analysis": "the sql generated for this user query was
-incorrect."  
-\# }
+	# get validation result and analysis  
+	validation_result = reflection_tasks.validation(reflection_state)  
 
-\# any more iterations to do?  
-if validation_result\['validation'\] is True or \\  
-        iteration \>= app_constants.MAX_REFLECTION_ITERATIONS:  
-    break  \# break out of the iteration loop
+	# Validation result:  
+	# {  
+	#     "validation": false,  
+	#     "validation_analysis": "the sql generated for this user query was incorrect."  
+	# }
+
+	# any more iterations to do?  
+	if validation_result['validation'] is True or \  
+	        iteration >= app_constants.MAX_REFLECTION_ITERATIONS:  
+	    break  # break out of the iteration loop
 
 **Step 3 - Review prompt preparation**
 
@@ -423,64 +415,55 @@ prompt asks the newly generated SQL to be placed within a \<sql\> tag.
 Please see the prepared prompt below. Certain parts of the prompt, such
 as instructions, schema, are spliced to save on space here.
 
-\# prepare a prompt for reflection -  
-\# using system prompt, user query, tables schema,  
-\# tables rules, and previously generated output  
-reflection_prompt =
-reflection_tasks.generate_reflection_prompt(reflection_state)  
-  
-\# Prompt for performing reflection:  
-\# '''  
-\# You are a PostgreSQL expert and also a network firewall expert.  
-\# Your job is to review a SQL query that has been created to answer a
-user's question.  
-\# That SQL may have been created without fully considering the sql
-schema definitions  
-\# and the associat...  
-\# ...Review the user's question along with the supporting contextual
-information and  
-\# put your analysis within \<thinking\> tags. Output what you determine
-to be the  
-\# correct SQL query within \<sql\> tags.  
-\# The SQL output should be a syntactically correct postgres query  
-\#  
-\# Do not output any further explanations or prose.  
-\#  
-\# \<user_question\>  
-\# List my VPN Policies  
-\# \</user_question\>  
-\#  
-\# \<sql_query\>  
-\# SELECT DISTINCT vpn_policy_union.name, vpn_policy_union.policy_type
-\\  
-\#    FROM vpn_policy_union  
-\# \</sql_query\>  
-\#  
-\# \<database_schema\>  
-\# \['  
-\#   CREATE TABLE "web_access_policy" ( -- Web Access Policy  
-\#     "name" text, -- User specified name of the policy  
-\#     "id" numeric, -- Unique id of the apolicy  
-\#     "last_modified_date",  
-\#     "last_modified_by" text -- User that last modified the acces...  
-\# \</database_schema\>  
-\#   
-\# \<schema_rules\>  
-\# \["\<rule\>\\  
-\#    When selecting VPN information from the 'vpn_policy_union' table,
-\\  
-\#    a filter of 'VPN' should be applied to the 'name' column \\  
-\#    \</rule\>",  
-\#  "\<rule\>\\  
-\#    To filter on \*who modified a record\* in table, use the
-'last_modified_by' \\  
-\#    column if it exists and filter on the value of the given user
-name. \\  
-\#    \</rule\>",  
-\#    ...  
-\# \</schema_rules\>  
-\#   
-\# '''
+	# prepare a prompt for reflection -  
+	# using system prompt, user query, tables schema,  
+	# tables rules, and previously generated output  
+	reflection_prompt =
+	reflection_tasks.generate_reflection_prompt(reflection_state)  
+	  
+	# Prompt for performing reflection:  
+	# '''  
+	# You are a PostgreSQL expert and also a network firewall expert.  
+	# Your job is to review a SQL query that has been created to answer a user's question.  
+	# That SQL may have been created without fully considering the sql schema definitions  
+	# and the associat...  
+	# ...Review the user's question along with the supporting contextual information and  
+	# put your analysis within <thinking> tags. Output what you determine to be the  
+	# correct SQL query within <sql> tags.  
+	# The SQL output should be a syntactically correct postgres query  
+	#  
+	# Do not output any further explanations or prose.  
+	#  
+	# <user_question>  
+	# List my VPN Policies  
+	# </user_question>  
+	#  
+	# <sql_query>  
+	# SELECT DISTINCT vpn_policy_union.name, vpn_policy_union.policy_type \  
+	#    FROM vpn_policy_union  
+	# </sql_query>  
+	#  
+	# <database_schema>  
+	# ['CREATE TABLE "web_access_policy" ( -- Web Access Policy \
+	#     "name" text, -- User specified name of the policy \
+	#     "id" numeric, -- Unique id of the apolicy \
+	#     "last_modified_date", \
+	#     "last_modified_by" text -- User that last modified the acces...  
+	# </database_schema>  
+	#   
+	# <schema_rules>  
+	# ["<rule>\
+	#    When selecting VPN information from the 'vpn_policy_union' table, \  
+	#    a filter of 'VPN' should be applied to the 'name' column \
+	#    </rule>",  
+	#  "<rule>\
+	#    To filter on *who modified a record* in table, use the 'last_modified_by' \
+	#    column if it exists and filter on the value of the given user name. \
+	#    </rule>",  
+	#    ...  
+	# </schema_rules>  
+	#   
+	# '''
 
 **Step 4 - Invoke LLM to review and remedy**
 
@@ -497,41 +480,31 @@ below.
 Based on the mentioned thinking, the LLM generates the newer and most
 likely a better SQL query.
 
-\# LLM's response to the prompt  
-llm_response = reflection_tasks.llm_inference(reflection_prompt)  
-\# extract the generated SQL from the response  
-output_sql = reflection_tasks.get_sql_from_completion(llm_response)  
-reflection_tasks.set_sql_in_genoutput(reflection_state, output_sql)  
-  
-\# \<thinking\> tag in LLM's response:  
-\# The given SQL query selects the distinct names and policy types from
-the \\  
-\# \`vpn_policy_union\` table. This query does not fully consider the
-schema \\  
-\# definitions and associated rules. According to the schema, the
-\`vpn_policy_union\` \\  
-\# table contains both Jaguar VPN policies and VPN policies. The
-\`policy_type\` column \\  
-\# indicates the type of the VPN policy, with possible values of
-'JaguarVPN' and 'VPN'.\\  
-\# To retrieve only the VPN policies, we need to add a filter to the
-query to select \\  
-\# records where \`policy_type\` is 'VPN'. Additionally, the schema
-rules state that we \\  
-\# should not include columns that are not needed in the SELECT clause,
-such as \`id\` \\  
-\# and \`domain_id\` from the \`vpn_policy_union\` table.  
-  
-\# Generated output after one reflection iteration:  
-\# {  
-\#     "user_query": "List my VPN Policies",  
-\#     "sql": "SELECT DISTINCT vpn_policy_union.name,
-vpn_policy_union.policy_type \\  
-\#         FROM vpn_policy_union WHERE vpn_policy_union.policy_type =
-'VPN'",  
-\#     "source": "Reflection-Pass",  
-\#     "iteration": 1  
-\# }
+	# LLM's response to the prompt  
+	llm_response = reflection_tasks.llm_inference(reflection_prompt)  
+	# extract the generated SQL from the response  
+	output_sql = reflection_tasks.get_sql_from_completion(llm_response)  
+	reflection_tasks.set_sql_in_genoutput(reflection_state, output_sql)  
+	  
+	# <thinking> tag in LLM's response:  
+	# The given SQL query selects the distinct names and policy types from the \
+	# 'vpn_policy_union' table. This query does not fully consider the schema \
+	# definitions and associated rules. According to the schema, the 'vpn_policy_union' \
+	# table contains both Jaguar VPN policies and VPN policies. The 'policy_type' column \
+	# indicates the type of the VPN policy, with possible values of 'JaguarVPN' and 'VPN'.\
+	# To retrieve only the VPN policies, we need to add a filter to the query to select \
+	# records where 'policy_type' is 'VPN'. Additionally, the schema rules state that we \
+	# should not include columns that are not needed in the SELECT clause, such as 'id' \
+	# and 'domain_id' from the 'vpn_policy_union' table.  
+	  
+	# Generated output after one reflection iteration:  
+	# {  
+	#     "user_query": "List my VPN Policies",  
+	#     "sql": "SELECT DISTINCT vpn_policy_union.name, vpn_policy_union.policy_type \
+	#         FROM vpn_policy_union WHERE vpn_policy_union.policy_type = 'VPN'",  
+	#     "source": "Reflection-Pass",  
+	#     "iteration": 1  
+	# }
 
 **Step 2, second iteration - Loop back to validate this new output**
 
@@ -542,33 +515,31 @@ This time the placeholder validation function performs a syntax check of
 the generated SQL and returns the result as success, thus terminating
 the reflection iteration loop.
 
-\# looping back to validation of the generated output  
-  
-\# get validation result and analysis  
-validation_result = reflection_tasks.validation(example_case)  
-  
-\# Validation result:  
-\# {  
-\#     "validation": true,  
-\#     "validation_analysis": "the generated sql passed validation
-checks."  
-\# }
+	# looping back to validation of the generated output  
+	  
+	# get validation result and analysis  
+	validation_result = reflection_tasks.validation(example_case)  
+	  
+	# Validation result:  
+	# {  
+	#     "validation": true,  
+	#     "validation_analysis": "the generated sql passed validation checks."  
+	# }
 
-\# any more iterations to do?  
-if validation_result\['validation'\] is True or \\  
-        iteration \>= app_constants.MAX_REFLECTION_ITERATIONS:  
-    break  # break out of the iteration loop  
-  
-\# End of iterations
+	# any more iterations to do?  
+	if validation_result['validation'] is True or \
+	        iteration >= app_constants.MAX_REFLECTION_ITERATIONS:  
+	    break  # break out of the iteration loop  
+	  
+	# End of iterations
 
 **Final result**
 
 The final result of the run is picked from the reflection_state object.
 
-\# "validation": true,  
-\# "sql": "SELECT DISTINCT vpn_policy_union.name,
-vpn_policy_union.policy_type \\  
-\#     FROM vpn_policy_union WHERE vpn_policy_union.policy_type = 'VPN'"
+	# "validation": true,  
+	# "sql": "SELECT DISTINCT vpn_policy_union.name, vpn_policy_union.policy_type \
+	#     FROM vpn_policy_union WHERE vpn_policy_union.policy_type = 'VPN'"
 
 # Conclusion
 
@@ -577,19 +548,19 @@ generating SQL from textual user queries. We specifically used
 reflection agentic workflow, to iterate and improve the generation of
 the SQL query.
 
-The implementation is available on GitHub at \<\<github link\>\>. Our
+The implementation is available on GitHub at [link](https://github.com/genai-articles/nl2sql_with_agentic_reflection). Our
 implementation uses LLM on Amazon Bedrock due to the ease of use it
 offers, but can be changed easily to use LLMs of your choice. Please
 contact the authors if you would like to discuss this further.
 
-# About the Authors
+---
 
-\<\< Will add pictures directly to the word doc\>\> 
+## *About the Authors*
 
-|  | A | B |
-|----|----|----|
-| 1 |  | **Toby Fotherby** is an AI and ML Specialist Architect at Amazon Web Services  (AWS), helping customers use cloud-based machine learning services to rapidly  scale their innovations. He has over a decade of cross-industry expertise  leading strategic initiatives. Toby also leads a program training the next  generation of AI Solutions Architects. |
-| 2 |  | **Atul Varshneya** is a Principal AI/ML Specialist at AWS. He currently focuses on  developing solutions in the areas of AI/ML particularly in generative AI. In his career of four decades, Atul has worked as the technology R&D leader in multiple large companies and startups. Outside of work he enjoys  performing Hindustani classical music. |
-| 3 |  | **Shweta Keshavanarayana** is a Senior Customer Solutions Manager at AWS. She works with  AWS Strategic Customers and helps them in their Cloud Migration and Modernization  journey. Shweta is passionate about solving complex customer challenges using  creative solutions. She holds an undergraduate degree in Computer Science  & Engineering. Beyond her professional life, she volunteers as a team  manager for her sons' U9 cricket team, while also mentoring women in tech and  serving the local community. |
+**Toby Fotherby** is an AI and ML Specialist Architect at Amazon Web Services  (AWS), helping customers use cloud-based machine learning services to rapidly  scale their innovations. He has over a decade of cross-industry expertise  leading strategic initiatives. Toby also leads a program training the next  generation of AI Solutions Architects.
+
+**Atul Varshneya** is a Principal AI/ML Specialist at AWS. He currently focuses on  developing solutions in the areas of AI/ML particularly in generative AI. In his career of four decades, Atul has worked as the technology R&D leader in multiple large companies and startups. Outside of work he enjoys  performing Hindustani classical music.
+
+**Shweta Keshavanarayana** is a Senior Customer Solutions Manager at AWS. She works with  AWS Strategic Customers and helps them in their Cloud Migration and Modernization  journey. Shweta is passionate about solving complex customer challenges using  creative solutions. She holds an undergraduate degree in Computer Science  & Engineering. Beyond her professional life, she volunteers as a team  manager for her sons' U9 cricket team, while also mentoring women in tech and  serving the local community.
 
  
