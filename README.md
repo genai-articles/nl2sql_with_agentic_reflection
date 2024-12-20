@@ -1,5 +1,8 @@
 # Agentic Reflection for Natural Language to SQL Generation
 
+*Authors: Atul Varshneya, Toby Fotherby, Shweta Keshavanarayana*  
+***
+
 # Introduction
 
 Natural language to SQL (NL2SQL) conversion promises to democratize data
@@ -550,17 +553,16 @@ the SQL query.
 
 The implementation is available on GitHub at [link](https://github.com/genai-articles/nl2sql_with_agentic_reflection). Our
 implementation uses LLM on Amazon Bedrock due to the ease of use it
-offers, but can be changed easily to use LLMs of your choice. Please
-contact the authors if you would like to discuss this further.
+offers, but can be changed easily to use LLMs of your choice.
 
 ---
 
 ## *About the Authors*
 
-**Toby Fotherby** is an AI and ML Specialist Architect at Amazon Web Services  (AWS), helping customers use cloud-based machine learning services to rapidly  scale their innovations. He has over a decade of cross-industry expertise  leading strategic initiatives. Toby also leads a program training the next  generation of AI Solutions Architects.
+**Atul Varshneya** is a Principal AI/ML Specialist. He currently focuses on  developing solutions in the areas of AI/ML particularly in generative AI. In his career of four decades, Atul has worked as the technology R&D leader in multiple large companies and startups. Outside of work he enjoys  performing Hindustani classical music.
 
-**Atul Varshneya** is a Principal AI/ML Specialist at AWS. He currently focuses on  developing solutions in the areas of AI/ML particularly in generative AI. In his career of four decades, Atul has worked as the technology R&D leader in multiple large companies and startups. Outside of work he enjoys  performing Hindustani classical music.
+**Toby Fotherby** is an AI and ML Specialist Architect, helping customers use cloud-based machine learning services to rapidly  scale their innovations. He has over a decade of cross-industry expertise  leading strategic initiatives. Toby also leads a program training the next  generation of AI Solutions Architects.
 
-**Shweta Keshavanarayana** is a Senior Customer Solutions Manager at AWS. She works with  AWS Strategic Customers and helps them in their Cloud Migration and Modernization  journey. Shweta is passionate about solving complex customer challenges using  creative solutions. She holds an undergraduate degree in Computer Science  & Engineering. Beyond her professional life, she volunteers as a team  manager for her sons' U9 cricket team, while also mentoring women in tech and  serving the local community.
+**Shweta Keshavanarayana** is a Senior Customer Solutions Manager. She helps customers in their Cloud Migration and Modernization  journey. Shweta is passionate about solving complex customer challenges using  creative solutions. She holds an undergraduate degree in Computer Science  & Engineering. Beyond her professional life, she volunteers as a team  manager for her sons' U9 cricket team, while also mentoring women in tech and  serving the local community.
 
- 
+*\*This publication represents opinions of the authors not the opinions of their employer.*
