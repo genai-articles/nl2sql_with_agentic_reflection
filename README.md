@@ -17,7 +17,7 @@ organizations increasingly rely on data-driven insights, the need for
 accurate and reliable natural language to SQL solutions has become more
 important. 
 
-In this article we present a Generative AI Reflection and Remediation
+In this article we present a Generative AI Reflection agentic 
 approach which goes beyond the typical one-pass application of the
 natural language to SQL, and leverages agentic reflection to improve
 generative accuracy. This approach analyzes the output of the first-pass
@@ -34,7 +34,7 @@ Model (LLM) to generate the desired response. With progressively
 powerful models becoming available, such strategies can perform
 reasonably well. However, there is another way of thinking about
 prompting LLMs beyond such single and direct prompting approach, by
-utilizing a more iterative way of working on the task: Essentially,
+utilizing a more iterative way of working on the task. Essentially,
 following a workflow more typical of how humans would perform the task.
 Such iterative approaches not only result in improvements in the quality
 of the output, but also open doors for alternative and powerful
@@ -43,14 +43,14 @@ paradigms for performing complex tasks.
 Such iterative workflow patterns can take various forms. While there is
 no particular commonly agreed way to categorize these patterns, the
 following is one reasonable way mentioned in
-industry [literature](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/?ref=dl-staging-website.ghost.io).
+industry [literature](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/).
 
 - **Reflection:** Review and improve the previously generated output.
   For example, write code per the provided prompt, review it, identify
   issues, and generate updated code to fix those. Please note, for this
   article this agentic workflow is of specific interest. Using
   this, [deeplearning.ai
-  reports](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/?ref=dl-staging-website.ghost.io)
+  reports](https://www.deeplearning.ai/the-batch/how-agents-can-improve-llm-performance/)
   a boost in performance for HumanEval coding benchmark from 48.1% to
   95.1%. A broad description of reflection agents can be found in [this
   article](https://blog.langchain.dev/reflection-agents/).
@@ -206,7 +206,7 @@ style="width:5.85321in;height:1.72477in" />
 
 This is the same as steps A, B and C described above. No changes to
 those steps are required, except for the outputs of steps A, B and C
-being made available to the Validate and Prep. Review Prompt steps.
+being made available to the Validate and Prepare Review Prompt steps.
 
 ### Validate
 
@@ -244,11 +244,11 @@ to create the reflection prompt. The specifics will vary based on the
 implementation, however, some common patterns are expected. For
 instance:
 
-1.  the stated objective of the task is to review input SQL for the
+1.  The stated objective of the task is to review input SQL for the
     user’s query, and to output syntactically and logical correct SQL to
     match the user’s query
 
-2.  the reflection prompt will include the user’s request
+2.  The reflection prompt will include the user’s request
 
 3.  It will include the most recently generated SQL for review
 
